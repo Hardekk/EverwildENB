@@ -629,6 +629,7 @@ struct VS_OUTPUT_POST
 };
 
 #include "/Shaders/enbeffect_AdaptTool.fxh"
+#include "/Include/EverwildNextGen.fxh"
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
@@ -664,6 +665,7 @@ float4	PS_Draw(VS_OUTPUT_POST IN, float4 v0 : SV_Position0) : SV_Target
 	color.xyz+=bloom*ENBParams01.x; //bloom amount
 
 	float	grayadaptation=TextureAdaptation.Sample(Sampler0, IN.txcoord0.xy).x;
+	color.xyz=EW_NextGen(color.xyz, IN.txcoord0.xy, grayadaptation);
 
 
 #if (POSTPROCESS==1)
@@ -957,14 +959,32 @@ float4	PS_DrawOriginal(VS_OUTPUT_POST IN, float4 v0 : SV_Position0) : SV_Target
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-technique11 Draw <string UIName="Everwild";>
+technique11 Draw <string UIName="Everwild"; string RenderTarget="RenderTargetR16F";>
+{
+	pass p0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS_Draw()));
+		SetPixelShader(CompileShader(ps_5_0, PS_EW_LumPrep()));
+	}
+}
+
+technique11 Draw1 <string RenderTarget="RenderTargetR32F";>
+{
+	pass p0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS_Draw()));
+		SetPixelShader(CompileShader(ps_5_0, PS_EW_LumBlur()));
+	}
+}
+
+technique11 Draw2
 {
 	pass p0
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS_Draw()));
 		SetPixelShader(CompileShader(ps_5_0, PS_Draw()));
 	}
-		pass ADAPT_TOOL_PASS
+	pass ADAPT_TOOL_PASS
 }
 
 
